@@ -1,7 +1,7 @@
 use std::{
     fs,
     io::{Read, Write},
-    path,
+    path::{self, Path},
 };
 
 use chrono::{DateTime, Local, Timelike};
@@ -522,7 +522,14 @@ fn print_help(name: &String) {
 fn main() {
     let args = std::env::args().collect::<Vec<String>>();
     let binary_name = args[0].clone();
-    let binary_directory = std::env::current_exe().expect("Could not get binary's directory");
+    let binary_file_path = std::env::current_exe().expect("Could not get binary's directory");
+    let mut bin_dir_ansestor = binary_file_path.ancestors();
+
+    bin_dir_ansestor.next();
+    let binary_directory = bin_dir_ansestor.next().unwrap_or(Path::new("."));
+
+    dbg!(binary_directory);
+
     let mut store =
         Store::open(binary_directory.to_str().unwrap()).expect("Could not create store");
 
