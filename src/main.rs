@@ -493,7 +493,7 @@ fn print_help(name: &String) {
     println!("  progress task TSK-1 --check              Mark task TSK-1 as done.");
     println!("  progress task TSK-2 --uncheck            Mark task TSK-2 as undone.");
     println!("  progress task TSK-3 --remove             Remove task TSK-3.");
-    println!();
+    println!("\n\nwith ❤️ from rubbie kelvin (dev.rubbie@gmail.com)\n");
 }
 
 fn main() {
