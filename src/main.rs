@@ -4,7 +4,7 @@ use std::{
     path,
 };
 
-use chrono::Utc;
+use chrono::{DateTime, Local, Utc};
 
 const STORE_PATH: &str = "progress.store";
 
@@ -239,6 +239,61 @@ impl Store {
         self.metadata.last_task_id += 1;
         self.save();
     }
+
+    fn remove_task(&mut self, id: u32) -> Result<(), &str> {
+        for (index, task) in self.tasks.iter().enumerate() {
+            if task.id != id {
+                continue;
+            }
+            // we cant remove a task if it wasnt added today
+            let today = Local::now().date_naive();
+            let task_created_date = DateTime::from_timestamp(task.date_created, 0).unwrap();
+
+            if task_created_date.date_naive() == today {
+                self.tasks.swap_remove(index);
+            } else {
+                return Err("Cannot remove task that wasn't added today");
+            }
+            break;
+        }
+        return Ok(());
+    }
+
+    fn toggle_check_task(&mut self, id: u32, check: bool) -> Result<(), &str> {
+        for task in self.tasks.iter_mut() {
+            if task.id != id {
+                continue;
+            }
+
+            if task.done == check {
+                return Err(if check {
+                    "Task already done"
+                } else {
+                    "Task not completed yet"
+                });
+            }
+
+            if check {
+                // task
+                let now = Utc::now().timestamp();
+                task.done = true;
+                task.date_checked = Some(now);
+            } else {
+                // we cant uncheck task if not the same day
+                let today = Local::now().date_naive();
+                let task_created_date = DateTime::from_timestamp(task.date_created, 0).unwrap();
+
+                if task_created_date.date_naive() == today {
+                    task.done = false;
+                    task.date_checked = None;
+                } else {
+                    return Err("Cannot uncheck task that wasn't checked today");
+                }
+            }
+            break;
+        }
+        return Ok(());
+    }
 }
 
 fn print_help() {
@@ -259,8 +314,9 @@ fn main() {
         "task-add" => {
             if let Some(task_label) = args.get(2) {
                 let now = Utc::now().timestamp();
+                let id = store.metadata.last_task_id;
                 let task = Task {
-                    id: store.metadata.last_task_id,
+                    id,
                     done: false,
                     label: task_label.clone(),
                     date_checked: None,
@@ -268,9 +324,41 @@ fn main() {
                 };
 
                 store.add_task(task);
+                println!("Task (tsk-{}) added to store", id);
             } else {
                 println!("No task in entry");
             }
+        }
+        "task" => {
+            let id = args.get(2).expect("Expected task id");
+            let command = args.get(3).expect("Expected task command");
+
+            let ids = id.split('-').collect::<Vec<&str>>();
+            if ids.len() != 2 || ids[0].to_lowercase() != "tsk" {
+                println!("Invalid task id");
+                panic!()
+            }
+
+            let id = ids[1].parse::<u32>().expect("Invalid task id suffix");
+
+            match command.as_str() {
+                "--remove" => {
+                    store.remove_task(id).unwrap();
+                }
+                "--check" => {
+                    store.toggle_check_task(id, true).unwrap();
+                }
+                "--uncheck" => {
+                    store.toggle_check_task(id, false).unwrap();
+                }
+                _ => {
+                    println!("Invalid task command");
+                    print_help();
+                    panic!();
+                }
+            }
+
+            store.save();
         }
         _ => {
             print_help();
