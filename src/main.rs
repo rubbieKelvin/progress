@@ -4,7 +4,7 @@ use std::{
     path,
 };
 
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local, Timelike};
 
 const STORE_PATH: &str = "progress.store";
 
@@ -275,7 +275,7 @@ impl Store {
 
             if check {
                 // task
-                let now = Utc::now().timestamp();
+                let now = Local::now().timestamp();
                 task.done = true;
                 task.date_checked = Some(now);
             } else {
@@ -294,6 +294,133 @@ impl Store {
         }
         return Ok(());
     }
+
+    fn show_info(&self) {
+        let now = Local::now();
+        println!("Hey there! It's {:02}:{:02}", now.hour(), now.minute());
+
+        let today = now.date_naive();
+
+        let tasks_today: Vec<&Task> = self
+            .tasks
+            .iter()
+            .filter(|task| {
+                let task_date = DateTime::from_timestamp(task.date_created, 0)
+                    .map(|dt| dt.date_naive())
+                    .unwrap_or(today);
+                task_date == today
+            })
+            .collect();
+
+        if tasks_today.is_empty() {
+            println!("No tasks for today.");
+        } else {
+            println!("\nTasks for Today:");
+            for task in &tasks_today {
+                println!(
+                    "TSK-{} - [{}] {}",
+                    task.id,
+                    if task.done { "x" } else { " " },
+                    task.label
+                );
+            }
+        }
+
+        let unchecked_tasks_before_today: Vec<&Task> = self
+            .tasks
+            .iter()
+            .filter(|task| {
+                let task_date = DateTime::from_timestamp(task.date_created, 0)
+                    .map(|dt| dt.date_naive())
+                    .unwrap_or(today);
+                task_date < today && task.date_checked.is_none()
+            })
+            .collect();
+
+        if !unchecked_tasks_before_today.is_empty() {
+            println!("\nCarry-over:");
+            for task in &unchecked_tasks_before_today {
+                println!(
+                    "TSK-{} ({}) - [{}] {}",
+                    task.id,
+                    format_timestamp_ago(task.date_created),
+                    if task.done { "x" } else { " " },
+                    task.label
+                );
+            }
+        }
+
+        let total_tasks = self.tasks.len();
+        let completed_tasks = self.tasks.iter().filter(|task| task.done).count();
+        let incomplete_tasks = total_tasks - completed_tasks;
+        let done_today = self
+            .tasks
+            .iter()
+            .filter(|task| {
+                if let Some(checked_time) = task.date_checked {
+                    let checked_date = DateTime::from_timestamp(checked_time, 0)
+                        .map(|dt| dt.date_naive())
+                        .unwrap_or(today);
+                    return checked_date == today;
+                }
+                false
+            })
+            .count();
+        let done_before_today = completed_tasks - done_today;
+
+        let earliest_date = self
+            .tasks
+            .iter()
+            .filter_map(|task| {
+                DateTime::from_timestamp(task.date_created, 0).map(|dt| dt.date_naive())
+            })
+            .min();
+        let latest_date = self
+            .tasks
+            .iter()
+            .filter_map(|task| {
+                DateTime::from_timestamp(task.date_created, 0).map(|dt| dt.date_naive())
+            })
+            .max();
+
+        println!("\nStatistics:");
+        println!("- Total tasks: {}", total_tasks);
+        println!("- Completed tasks: {}", completed_tasks);
+        println!("- Incomplete tasks: {}", incomplete_tasks);
+        println!("- Tasks created today: {}", tasks_today.len());
+        println!("- Tasks marked as done today: {}", done_today);
+        println!("- Tasks marked as done before today: {}", done_before_today);
+        println!(
+            "- Unchecked tasks from before today: {}",
+            unchecked_tasks_before_today.len()
+        );
+
+        if let Some(earliest) = earliest_date {
+            println!("- Earliest task creation date: {}", earliest);
+        }
+        if let Some(latest) = latest_date {
+            println!("- Latest task creation date: {}", latest);
+        }
+    }
+}
+
+fn format_timestamp_ago(timestamp: i64) -> String {
+    let now = Local::now().to_utc();
+    let time = DateTime::from_timestamp(timestamp, 0).unwrap();
+
+    let duration = now - time;
+
+    if duration.num_seconds() < 60 {
+        return format!("{} seconds ago", duration.num_seconds());
+    } else if duration.num_minutes() < 60 {
+        return format!("{} minutes ago", duration.num_minutes());
+    } else if duration.num_hours() < 24 {
+        return format!("{} hours ago", duration.num_hours());
+    } else if duration.num_days() < 7 {
+        return format!("{} days ago", duration.num_days());
+    } else {
+        return format!("{} weeks ago", duration.num_weeks());
+    }
 }
 
 fn print_help() {
@@ -302,18 +429,20 @@ fn print_help() {
 
 fn main() {
     let args = std::env::args().collect::<Vec<String>>();
+    let mut store = Store::open().expect("Could not create store");
 
     if args.len() == 1 {
-        print_help();
+        store.show_info();
         return;
     }
 
-    let mut store = Store::open().expect("Could not create store");
-
     match args[1].as_str() {
+        "--help" => {
+            print_help();
+        }
         "task-add" => {
             if let Some(task_label) = args.get(2) {
-                let now = Utc::now().timestamp();
+                let now = Local::now().timestamp();
                 let id = store.metadata.last_task_id;
                 let task = Task {
                     id,
@@ -367,6 +496,7 @@ fn main() {
 }
 
 // progress
+// progress --help
 // progress task-add "The one that said fuck"
 // progress task TSK-2 --remove
 // progress task TSK-2 --check
