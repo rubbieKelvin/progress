@@ -7,7 +7,7 @@ use std::{
 use chrono::{DateTime, Local, Timelike};
 use colored::Colorize;
 
-const STORE_PATH: &str = "progress.store";
+const STORE_FILE: &str = "progress.store";
 
 enum ParseState {
     WritingMetadata(u8),
@@ -72,7 +72,7 @@ struct Store {
 
 impl Store {
     fn save(&self) {
-        let file_path = path::Path::new(&self.root).join(STORE_PATH);
+        let file_path = path::Path::new(&self.root).join(STORE_FILE);
         let mut content_buffer = String::new();
 
         // dump metadata
@@ -87,7 +87,7 @@ impl Store {
     }
 
     fn open(root: &str) -> Result<Self, String> {
-        let file_path = path::Path::new(STORE_PATH);
+        let file_path = path::Path::new(root).join(STORE_FILE);
 
         if !file_path.exists() {
             return Ok(Store {
@@ -525,10 +525,8 @@ fn main() {
     let binary_file_path = std::env::current_exe().expect("Could not get binary's directory");
     let mut bin_dir_ansestor = binary_file_path.ancestors();
 
-    bin_dir_ansestor.next();
+    bin_dir_ansestor.next(); // first iteration of ansestor
     let binary_directory = bin_dir_ansestor.next().unwrap_or(Path::new("."));
-
-    dbg!(binary_directory);
 
     let mut store =
         Store::open(binary_directory.to_str().unwrap()).expect("Could not create store");
