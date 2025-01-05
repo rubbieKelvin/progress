@@ -401,6 +401,57 @@ impl Store {
         if let Some(latest) = latest_date {
             println!("- Latest task creation date: {}", latest);
         }
+
+        println!("Use --help to see more.")
+    }
+
+    fn show_info_basic(&self) {
+        let today = Local::now().date_naive();
+
+        // pending tasks (including unchecked tasks from previous days)
+        let pending_tasks_today: Vec<&Task> = self
+            .tasks
+            .iter()
+            .filter(|task| {
+                let task_date = DateTime::from_timestamp(task.date_created, 0)
+                    .map(|dt| dt.date_naive())
+                    .unwrap_or(today);
+
+                // task is either from today or unchecked (not marked as done)
+                (task_date == today || task.date_checked.is_none()) && !task.done
+            })
+            .collect();
+
+        // unchecked tasks from previous days
+        let pending_tasks_previous_days: Vec<&Task> = self
+            .tasks
+            .iter()
+            .filter(|task| {
+                let task_date = DateTime::from_timestamp(task.date_created, 0)
+                    .map(|dt| dt.date_naive())
+                    .unwrap_or(today);
+
+                // task is from a previous day and unchecked
+                task_date < today && task.date_checked.is_none() && !task.done
+            })
+            .collect();
+
+        let total_pending = pending_tasks_today.len();
+        let from_previous_days = pending_tasks_previous_days.len();
+
+        if total_pending + from_previous_days == 0 {
+            println!(
+                "[{}] You gotta lockin! create a task! see --help",
+                Local::now().format("%H:%M"),
+            );
+        } else {
+            println!(
+                "[{}] You have {} pending task(s) for today, {} from previous days",
+                Local::now().format("%H:%M"),
+                total_pending,
+                from_previous_days
+            )
+        };
     }
 }
 
@@ -423,13 +474,31 @@ fn format_timestamp_ago(timestamp: i64) -> String {
     }
 }
 
-fn print_help() {
-    println!("Progress tracker v0.0.1");
+fn print_help(name: &String) {
+    println!("{}: progress <command> [options]\n", name);
+    println!("Commands:");
+    println!("  --help            Show this help message.");
+    println!("  --minimal         Show minimal task information.");
+    println!("  task-add <label>  Add a new task with the specified label.");
+    println!("  task <task-id> <command> [options]  Manage an existing task.\n");
+    println!("Task Commands:");
+    println!("  --remove          Remove the task with the given ID.");
+    println!("  --check           Mark the task with the given ID as done.");
+    println!("  --uncheck         Mark the task with the given ID as undone.\n");
+    println!("Examples:");
+    println!("  progress --help                          Show this help message.");
+    println!("  progress --minimal                       Show minimal task information.");
+    println!("  progress task-add \"Buy groceries\"       Add a new task.");
+    println!("  progress task TSK-1 --check              Mark task TSK-1 as done.");
+    println!("  progress task TSK-2 --uncheck            Mark task TSK-2 as undone.");
+    println!("  progress task TSK-3 --remove             Remove task TSK-3.");
+    println!();
 }
 
 fn main() {
     let args = std::env::args().collect::<Vec<String>>();
     let mut store = Store::open().expect("Could not create store");
+    let binary_name = args[0].clone();
 
     if args.len() == 1 {
         store.show_info();
@@ -438,7 +507,10 @@ fn main() {
 
     match args[1].as_str() {
         "--help" => {
-            print_help();
+            print_help(&binary_name);
+        }
+        "--minimal" => {
+            store.show_info_basic();
         }
         "task-add" => {
             if let Some(task_label) = args.get(2) {
@@ -482,7 +554,7 @@ fn main() {
                 }
                 _ => {
                     println!("Invalid task command");
-                    print_help();
+                    print_help(&binary_name);
                     panic!();
                 }
             }
@@ -490,7 +562,7 @@ fn main() {
             store.save();
         }
         _ => {
-            print_help();
+            print_help(&binary_name);
         }
     }
 }
