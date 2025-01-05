@@ -4,6 +4,8 @@ use std::{
     path,
 };
 
+use chrono::Utc;
+
 const STORE_PATH: &str = "progress.store";
 
 enum ParseState {
@@ -15,8 +17,8 @@ struct Task {
     id: u32,
     done: bool,
     label: String,
-    date_created: String,
-    date_checked: Option<String>,
+    date_created: i64,
+    date_checked: Option<i64>,
 }
 
 impl Task {
@@ -26,21 +28,23 @@ impl Task {
             done: false,
             label: "".to_string(),
             date_checked: None,
-            date_created: "".to_string(),
+            date_created: 0,
         };
     }
 
     fn dump(&self, buffer: &mut String) {
+        let date_checked = if let Some(n) = &self.date_checked {
+            n.to_string()
+        } else {
+            "-".to_string()
+        };
+
         buffer.push_str(":task\n");
         buffer.push_str(format!("{}\n", self.id.to_string()).as_str());
         buffer.push_str(if self.done { "[x]\n" } else { "[]\n" });
         buffer.push_str(format!("{}\n", &self.label).as_str());
         buffer.push_str(format!("{}\n", &self.date_created).as_str());
-        buffer.push_str(if let Some(n) = &self.date_checked {
-            n
-        } else {
-            "-"
-        });
+        buffer.push_str(&date_checked);
         buffer.push_str("\n:end\n");
     }
 }
@@ -193,7 +197,10 @@ impl Store {
                                 3 => {
                                     let task = tasks.pop();
                                     if let Some(mut task) = task {
-                                        task.date_created = line.trim().to_string();
+                                        task.date_created = line
+                                            .trim()
+                                            .parse::<i64>()
+                                            .map_err(|e| e.to_string())?;
                                         tasks.push(task);
                                     } else {
                                         unreachable!();
@@ -205,7 +212,7 @@ impl Store {
                                     if let Some(mut task) = task {
                                         task.date_checked = match line.trim() {
                                             "-" => None,
-                                            n => Some(n.to_string()),
+                                            n => Some(n.parse::<i64>().map_err(|e| e.to_string())?),
                                         };
                                         tasks.push(task);
                                     } else {
@@ -251,12 +258,13 @@ fn main() {
     match args[1].as_str() {
         "task-add" => {
             if let Some(task_label) = args.get(2) {
+                let now = Utc::now().timestamp();
                 let task = Task {
                     id: store.metadata.last_task_id,
                     done: false,
                     label: task_label.clone(),
                     date_checked: None,
-                    date_created: "".to_string(),
+                    date_created: now,
                 };
 
                 store.add_task(task);
