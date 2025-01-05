@@ -13,8 +13,8 @@ A simple command-line application for managing tasks. You can add tasks, mark th
     - [General Commands](#general-commands)
       - [`--help`](#--help)
       - [`--minimal`](#--minimal)
-      - [`task-add <label>`](#task-add-label)
-      - [`task <task-id> <command> [options]`](#task-task-id-command-options)
+      - [`--add <label>`](#--add-label)
+      - [`--task <task-id> <command> [options]`](#--task-task-id-command-options)
     - [Task Commands](#task-commands)
       - [`--remove`](#--remove)
       - [`--check`](#--check)
@@ -79,15 +79,15 @@ Shows basic and essential information about tasks for today, including pending t
 progress --minimal
 ```
 
-#### `task-add <label>`
+#### `--add <label>`
 
 Adds a new task with the specified label. You need to provide a label for the task when running this command.
 
 ```bash
-progress task-add "Buy groceries"
+progress --add "Buy groceries"
 ```
 
-#### `task <task-id> <command> [options]`
+#### `--task <task-id> <command> [options]`
 
 Manage an existing task using the task ID and specific subcommands. Below are the subcommands available for managing tasks.
 
@@ -100,7 +100,7 @@ Manage an existing task using the task ID and specific subcommands. Below are th
 Removes the task with the given ID.
 
 ```bash
-progress task TSK-1 --remove
+progress --task TSK-1 --remove
 ```
 
 #### `--check`
@@ -108,7 +108,7 @@ progress task TSK-1 --remove
 Marks the task with the given ID as done.
 
 ```bash
-progress task TSK-1 --check
+progress --task TSK-1 --check
 ```
 
 #### `--uncheck`
@@ -116,7 +116,7 @@ progress task TSK-1 --check
 Marks the task with the given ID as undone.
 
 ```bash
-progress task TSK-1 --uncheck
+progress --task TSK-1 --uncheck
 ```
 
 ---
@@ -133,16 +133,16 @@ progress --help
 progress --minimal
 
 # Add a new task
-progress task-add "Buy groceries"
+progress --add "Buy groceries"
 
 # Mark a task as done
-progress task TSK-1 --check
+progress --task TSK-1 --check
 
 # Mark a task as undone
-progress task TSK-1 --uncheck
+progress --task TSK-1 --uncheck
 
 # Remove a task
-progress task TSK-1 --remove
+progress --task TSK-1 --remove
 ```
 
 ## License
