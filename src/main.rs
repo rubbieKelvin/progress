@@ -65,14 +65,14 @@ impl Metadata {
 }
 
 struct Store {
+    root: String,
     metadata: Metadata,
     tasks: Vec<Task>,
 }
 
 impl Store {
     fn save(&self) {
-        let file_path = path::Path::new(STORE_PATH);
-
+        let file_path = path::Path::new(&self.root).join(STORE_PATH);
         let mut content_buffer = String::new();
 
         // dump metadata
@@ -86,11 +86,12 @@ impl Store {
             .expect("Could not write to store");
     }
 
-    fn open() -> Result<Self, String> {
+    fn open(root: &str) -> Result<Self, String> {
         let file_path = path::Path::new(STORE_PATH);
 
         if !file_path.exists() {
             return Ok(Store {
+                root: root.to_string(),
                 metadata: Metadata::default(),
                 tasks: vec![],
             });
@@ -232,7 +233,11 @@ impl Store {
             }
         }
 
-        return Ok(Store { metadata, tasks });
+        return Ok(Store {
+            root: root.to_string(),
+            metadata,
+            tasks,
+        });
     }
 
     fn add_task(&mut self, task: Task) {
@@ -487,19 +492,39 @@ fn print_help(name: &String) {
     println!("  --check           Mark the task with the given ID as done.");
     println!("  --uncheck         Mark the task with the given ID as undone.\n");
     println!("Examples:");
-    println!("  {} --help                          Show this help message.", name);
-    println!("  {} --minimal                       Show minimal task information.", name);
-    println!("  {} task-add \"Buy groceries\"       Add a new task.", name);
-    println!("  {} task TSK-1 --check              Mark task TSK-1 as done.", name);
-    println!("  {} task TSK-2 --uncheck            Mark task TSK-2 as undone.", name);
-    println!("  {} task TSK-3 --remove             Remove task TSK-3.", name);
+    println!(
+        "  {} --help                          Show this help message.",
+        name
+    );
+    println!(
+        "  {} --minimal                       Show minimal task information.",
+        name
+    );
+    println!(
+        "  {} task-add \"Buy groceries\"       Add a new task.",
+        name
+    );
+    println!(
+        "  {} task TSK-1 --check              Mark task TSK-1 as done.",
+        name
+    );
+    println!(
+        "  {} task TSK-2 --uncheck            Mark task TSK-2 as undone.",
+        name
+    );
+    println!(
+        "  {} task TSK-3 --remove             Remove task TSK-3.",
+        name
+    );
     println!("\n\nwith ❤️ from rubbie kelvin (dev.rubbie@gmail.com)\n");
 }
 
 fn main() {
     let args = std::env::args().collect::<Vec<String>>();
-    let mut store = Store::open().expect("Could not create store");
     let binary_name = args[0].clone();
+    let binary_directory = std::env::current_exe().expect("Could not get binary's directory");
+    let mut store =
+        Store::open(binary_directory.to_str().unwrap()).expect("Could not create store");
 
     if args.len() == 1 {
         store.show_info();
