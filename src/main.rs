@@ -319,7 +319,7 @@ impl Store {
             .collect();
 
         if tasks_today.is_empty() {
-            println!("No tasks for today.");
+            println!("No tasks for today");
         } else {
             println!("\nTasks for Today:");
             for task in &tasks_today {
@@ -485,8 +485,8 @@ fn print_help(name: &String) {
     println!("Commands:");
     println!("  --help            Show this help message.");
     println!("  --minimal         Show minimal task information.");
-    println!("  task-add <label>  Add a new task with the specified label.");
-    println!("  task <task-id> <command> [options]  Manage an existing task.\n");
+    println!("  --add <label>  Add a new task with the specified label.");
+    println!("  --task <task-id> <command> [options]  Manage an existing task.\n");
     println!("Task Commands:");
     println!("  --remove          Remove the task with the given ID.");
     println!("  --check           Mark the task with the given ID as done.");
@@ -501,19 +501,19 @@ fn print_help(name: &String) {
         name
     );
     println!(
-        "  {} task-add \"Buy groceries\"       Add a new task.",
+        "  {} --add \"Buy groceries\"       Add a new task.",
         name
     );
     println!(
-        "  {} task TSK-1 --check              Mark task TSK-1 as done.",
+        "  {} --task TSK-1 --check              Mark task TSK-1 as done.",
         name
     );
     println!(
-        "  {} task TSK-2 --uncheck            Mark task TSK-2 as undone.",
+        "  {} --task TSK-2 --uncheck            Mark task TSK-2 as undone.",
         name
     );
     println!(
-        "  {} task TSK-3 --remove             Remove task TSK-3.",
+        "  {} --task TSK-3 --remove             Remove task TSK-3.",
         name
     );
     println!("\n\nwith ❤️ from rubbie kelvin (dev.rubbie@gmail.com)\n");
@@ -543,7 +543,7 @@ fn main() {
         "--minimal" => {
             store.show_info_basic();
         }
-        "task-add" => {
+        "--add" => {
             if let Some(task_label) = args.get(2) {
                 let now = Local::now().timestamp();
                 let id = store.metadata.last_task_id;
@@ -561,7 +561,7 @@ fn main() {
                 println!("No task in entry");
             }
         }
-        "task" => {
+        "--task" => {
             let id = args.get(2).expect("Expected task id");
             let command = args.get(3).expect("Expected task command");
 
@@ -600,7 +600,7 @@ fn main() {
 
 // progress
 // progress --help
-// progress task-add "The one that said fuck"
-// progress task TSK-2 --remove
-// progress task TSK-2 --check
-// progress task TSK-2 --uncheck
+// progress --add "The one that said fuck"
+// progress --task TSK-2 --remove
+// progress --task TSK-2 --check
+// progress --task TSK-2 --uncheck
