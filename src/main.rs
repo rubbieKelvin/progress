@@ -5,6 +5,7 @@ use std::{
 };
 
 use chrono::{DateTime, Local, Timelike};
+use colored::Colorize;
 
 const STORE_PATH: &str = "progress.store";
 
@@ -441,15 +442,15 @@ impl Store {
 
         if total_pending + from_previous_days == 0 {
             println!(
-                "[{}] You gotta lockin! create a task! see --help",
-                Local::now().format("%H:%M"),
+                "📅 {} You gotta lockin! create a task! see --help",
+                format!("[{}]", Local::now().format("%H:%M")).green(),
             );
         } else {
             println!(
-                "[{}] You have {} pending task(s) for today, {} from previous days",
-                Local::now().format("%H:%M"),
-                total_pending,
-                from_previous_days
+                "📅 {} You have {} pending task(s) for today, {} from previous days",
+                format!("[{}]", Local::now().format("%H:%M")).green(),
+                total_pending.to_string().yellow().bold(),
+                from_previous_days.to_string().red().bold()
             )
         };
     }
@@ -475,7 +476,7 @@ fn format_timestamp_ago(timestamp: i64) -> String {
 }
 
 fn print_help(name: &String) {
-    println!("{}: progress <command> [options]\n", name);
+    println!("{} <command> [options]\n", name);
     println!("Commands:");
     println!("  --help            Show this help message.");
     println!("  --minimal         Show minimal task information.");
