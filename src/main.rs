@@ -487,12 +487,12 @@ fn print_help(name: &String) {
     println!("  --check           Mark the task with the given ID as done.");
     println!("  --uncheck         Mark the task with the given ID as undone.\n");
     println!("Examples:");
-    println!("  progress --help                          Show this help message.");
-    println!("  progress --minimal                       Show minimal task information.");
-    println!("  progress task-add \"Buy groceries\"       Add a new task.");
-    println!("  progress task TSK-1 --check              Mark task TSK-1 as done.");
-    println!("  progress task TSK-2 --uncheck            Mark task TSK-2 as undone.");
-    println!("  progress task TSK-3 --remove             Remove task TSK-3.");
+    println!("  {} --help                          Show this help message.", name);
+    println!("  {} --minimal                       Show minimal task information.", name);
+    println!("  {} task-add \"Buy groceries\"       Add a new task.", name);
+    println!("  {} task TSK-1 --check              Mark task TSK-1 as done.", name);
+    println!("  {} task TSK-2 --uncheck            Mark task TSK-2 as undone.", name);
+    println!("  {} task TSK-3 --remove             Remove task TSK-3.", name);
     println!("\n\nwith ❤️ from rubbie kelvin (dev.rubbie@gmail.com)\n");
 }
 
