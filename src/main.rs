@@ -265,8 +265,12 @@ impl Store {
                 if let Some(date_checked) = task.date_checked {
                     println!("Finished ({})", format_timestamp_ago(date_checked))
                 }
+                return;
             }
         }
+
+        let error_message = format!("Task {} does not exist", id);
+        println!("{}", error_message.red());
     }
 
     fn remove_task(&mut self, id: u32) -> Result<(), &str> {
