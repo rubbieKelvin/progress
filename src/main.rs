@@ -246,6 +246,29 @@ impl Store {
         self.save();
     }
 
+    fn show_task_information(&self, id: u32) {
+        for task in &self.tasks {
+            if task.id == id {
+                println!(
+                    "{} · TSK-{}",
+                    if task.done {
+                        "[x]".green()
+                    } else {
+                        "[-]".red()
+                    },
+                    task.id
+                );
+                println!("----------------------");
+                println!("{}", task.label);
+                println!("Created ({})", format_timestamp_ago(task.date_created));
+
+                if let Some(date_checked) = task.date_checked {
+                    println!("Finished ({})", format_timestamp_ago(date_checked))
+                }
+            }
+        }
+    }
+
     fn remove_task(&mut self, id: u32) -> Result<(), &str> {
         for (index, task) in self.tasks.iter().enumerate() {
             if task.id != id {
@@ -500,10 +523,7 @@ fn print_help(name: &String) {
         "  {} --minimal                       Show minimal task information.",
         name
     );
-    println!(
-        "  {} --add \"Buy groceries\"       Add a new task.",
-        name
-    );
+    println!("  {} --add \"Buy groceries\"       Add a new task.", name);
     println!(
         "  {} --task TSK-1 --check              Mark task TSK-1 as done.",
         name
@@ -563,15 +583,23 @@ fn main() {
         }
         "--task" => {
             let id = args.get(2).expect("Expected task id");
-            let command = args.get(3).expect("Expected task command");
+            let command = args.get(3);
 
             let ids = id.split('-').collect::<Vec<&str>>();
+
             if ids.len() != 2 || ids[0].to_lowercase() != "tsk" {
                 println!("Invalid task id");
                 panic!()
             }
 
             let id = ids[1].parse::<u32>().expect("Invalid task id suffix");
+
+            if command.is_none() {
+                store.show_task_information(id);
+                return;
+            }
+
+            let command = command.unwrap();
 
             match command.as_str() {
                 "--remove" => {

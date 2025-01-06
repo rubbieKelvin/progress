@@ -14,7 +14,8 @@ A simple command-line application for managing tasks. You can add tasks, mark th
       - [`--help`](#--help)
       - [`--minimal`](#--minimal)
       - [`--add <label>`](#--add-label)
-      - [`--task <task-id> <command> [options]`](#--task-task-id-command-options)
+      - [`--task <task-id> [<command>] [options]`](#--task-task-id-command-options)
+  - [Manage an existing task using the task ID and specific subcommands. Below are the subcommands available for managing tasks. If no command is passed, it'll show the task information.](#manage-an-existing-task-using-the-task-id-and-specific-subcommands-below-are-the-subcommands-available-for-managing-tasks-if-no-command-is-passed-itll-show-the-task-information)
     - [Task Commands](#task-commands)
       - [`--remove`](#--remove)
       - [`--check`](#--check)
@@ -87,10 +88,9 @@ Adds a new task with the specified label. You need to provide a label for the ta
 progress --add "Buy groceries"
 ```
 
-#### `--task <task-id> <command> [options]`
+#### `--task <task-id> [<command>] [options]`
 
-Manage an existing task using the task ID and specific subcommands. Below are the subcommands available for managing tasks.
-
+Manage an existing task using the task ID and specific subcommands. Below are the subcommands available for managing tasks. If no command is passed, it'll show the task information.
 ---
 
 ### Task Commands
