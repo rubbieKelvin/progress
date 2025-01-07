@@ -346,8 +346,23 @@ impl Store {
             })
             .collect();
 
+        let unchecked_tasks_before_today: Vec<&Task> = self
+            .tasks
+            .iter()
+            .filter(|task| {
+                let task_date = DateTime::from_timestamp(task.date_created, 0)
+                    .map(|dt| dt.date_naive())
+                    .unwrap_or(today);
+                task_date < today && task.date_checked.is_none()
+            })
+            .collect();
+
         if tasks_today.is_empty() {
-            println!("No tasks for today");
+            // there's no task created today
+            if unchecked_tasks_before_today.is_empty() {
+                // there's o tsk created in the past that needs to be do today
+                println!("No tasks for today");
+            }
         } else {
             println!("\nTasks for Today:");
             for task in &tasks_today {
@@ -359,17 +374,6 @@ impl Store {
                 );
             }
         }
-
-        let unchecked_tasks_before_today: Vec<&Task> = self
-            .tasks
-            .iter()
-            .filter(|task| {
-                let task_date = DateTime::from_timestamp(task.date_created, 0)
-                    .map(|dt| dt.date_naive())
-                    .unwrap_or(today);
-                task_date < today && task.date_checked.is_none()
-            })
-            .collect();
 
         if !unchecked_tasks_before_today.is_empty() {
             println!("\nCarry-over:");
