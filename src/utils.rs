@@ -28,6 +28,7 @@ pub fn print_help(name: &String) {
     println!("  --task <task-id> <command> [options]  Manage an existing task.\n");
     println!("Task Commands:");
     println!("  --remove          Remove the task with the given ID.");
+    println!("  --rename <label>  Renames the task with the given ID");
     println!("  --check           Mark the task with the given ID as done.");
     println!("  --uncheck         Mark the task with the given ID as undone.\n");
     println!("Examples:");

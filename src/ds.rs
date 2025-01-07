@@ -1,4 +1,4 @@
-use chrono::{DateTime, Local, Timelike};
+use chrono::{DateTime, Local};
 use colored::Colorize;
 use std::{
     fs,
@@ -293,6 +293,24 @@ impl Store {
         return Ok(());
     }
 
+    pub fn relabel_task(&mut self, id: u32, label: &str) -> Result<(), &str> {
+        for task in &mut self.tasks {
+            if task.id != id {
+                continue;
+            }
+
+            if task.done {
+                println!("{}", "Cannot rename finished task".red());
+                return Ok(()); // bad design here, but who cares
+            }
+
+            task.label = label.to_owned();
+            return Ok(());
+        }
+        println!("No task with te specified id");
+        return Ok(());
+    }
+
     pub fn toggle_check_task(&mut self, id: u32, check: bool) -> Result<(), &str> {
         for task in self.tasks.iter_mut() {
             if task.id != id {
@@ -331,8 +349,6 @@ impl Store {
 
     pub fn show_info(&self) {
         let now = Local::now();
-        println!("Hey there! It's {:02}:{:02}", now.hour(), now.minute());
-
         let today = now.date_naive();
 
         let tasks_today: Vec<&Task> = self
@@ -361,10 +377,10 @@ impl Store {
             // there's no task created today
             if unchecked_tasks_before_today.is_empty() {
                 // there's o tsk created in the past that needs to be do today
-                println!("No tasks for today");
+                println!("{}", "No tasks for today".green().bold());
             }
         } else {
-            println!("\nTasks for Today:");
+            println!("{}", "Tasks for Today:".green().bold());
             for task in &tasks_today {
                 println!(
                     "TSK-{} - [{}] {}",
@@ -373,10 +389,11 @@ impl Store {
                     task.label
                 );
             }
+            println!();
         }
 
         if !unchecked_tasks_before_today.is_empty() {
-            println!("\nCarry-over:");
+            println!("{}", "Carry-over tasks:".yellow().bold());
             for task in &unchecked_tasks_before_today {
                 println!(
                     "TSK-{} ({}) - [{}] {}",
@@ -421,7 +438,7 @@ impl Store {
             })
             .max();
 
-        println!("\nStatistics:");
+        println!("{}", "\nStatistics:".green().bold());
         println!("- Total tasks: {}", total_tasks);
         println!("- Completed tasks: {}", completed_tasks);
         println!("- Incomplete tasks: {}", incomplete_tasks);

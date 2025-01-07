@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use chrono::Local;
+use colored::Colorize;
 use ds::{Store, Task};
 use utils::print_help;
 
@@ -79,8 +80,19 @@ fn main() {
                 "--uncheck" => {
                     store.toggle_check_task(id, false).unwrap();
                 }
+                "--rename" => {
+                    if let Some(label) = args.get(4) {
+                        if label.trim().len() == 0 {
+                            println!("{}", "Need to include label".red());
+                            return;
+                        }
+                        store.relabel_task(id, label).unwrap();
+                    } else {
+                        println!("{}", "Need to include label".red());
+                    }
+                }
                 _ => {
-                    println!("Invalid task command");
+                    println!("{}", "Invalid task command".red());
                     print_help(&binary_name);
                     panic!();
                 }
