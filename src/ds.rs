@@ -382,12 +382,12 @@ impl Store {
         } else {
             println!("{}", "Tasks for Today:".green().bold());
             for task in &tasks_today {
-                println!(
-                    "TSK-{} - [{}] {}",
-                    task.id,
-                    if task.done { "x" } else { " " },
-                    task.label
-                );
+                if task.done {
+                    let message = format!("TSK-{} - [x] {}", task.id, task.label).strikethrough();
+                    println!("{}", message);
+                } else {
+                    println!("TSK-{} - [-] {}", task.id, task.label);
+                }
             }
             println!();
         }
