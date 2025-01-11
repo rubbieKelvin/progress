@@ -402,10 +402,10 @@ impl Store {
         if !unchecked_tasks_before_today.is_empty() {
             println!("{}", "Carry-over tasks:".yellow().bold());
             for task in &unchecked_tasks_before_today {
+                let leading = format!("TSK-{} ({})", task.id, format_timestamp_ago(task.date_created));
                 println!(
-                    "TSK-{} ({}) - [{}] {}",
-                    task.id,
-                    format_timestamp_ago(task.date_created),
+                    "{} - [{}] {}",
+                    leading.on_truecolor(100, 100, 100),
                     if task.done { "x" } else { " " },
                     task.label
                 );
